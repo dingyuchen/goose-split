@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"log"
+
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/models"
 )
@@ -31,6 +33,7 @@ func NewPartyService(app *pocketbase.PocketBase) *PartyServiceImpl {
 	partyCollection, err := app.Dao().FindCollectionByNameOrId("parties")
 	if err != nil {
 		app.Logger().Error("parties collection not established", "err", err)
+		log.Fatalln(err)
 	}
 	return &PartyServiceImpl{partyCollection: partyCollection}
 }

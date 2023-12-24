@@ -1,3 +1,3 @@
-package templates
+package views
 
 //go:generate templ generate

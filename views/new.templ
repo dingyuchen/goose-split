@@ -1,0 +1,10 @@
+package views
+
+import "github.com/dingyuchen/goose-split/views/layouts"
+import "github.com/dingyuchen/goose-split/views/components"
+
+templ NewParty() {
+	@layouts.Page("New Party") {
+		@components.NewPartyForm(2)
+	}
+}

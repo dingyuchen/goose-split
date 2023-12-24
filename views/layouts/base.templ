@@ -1,4 +1,4 @@
-package templates
+package layouts
 
 templ Page(title string) {
 	<!DOCTYPE html>
@@ -11,16 +11,13 @@ templ Page(title string) {
 			<meta name="robots" content="index, follow"/>
 			<meta name="revisit-after" content="7 days"/>
 			<meta name="language" content="English"/>
-			<script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
+			<script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous" defer></script>
 			<script src="https://cdn.tailwindcss.com"></script>
 			// <link rel="stylesheet" href="/dist/styles.css"/>
 		</head>
 		<body>
-			<main>
-				<h1 class="text-8xl text-center p-4">Goose Split</h1>
-				<section class="max-w-lg mx-auto my-2">
-					{ children... }
-				</section>
+			<main class="max-w-lg mx-auto my-2 flex">
+				{ children... }
 			</main>
 		</body>
 	</html>

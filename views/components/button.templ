@@ -1,0 +1,11 @@
+package components
+
+templ Button(content string, attrs templ.Attributes) {
+	<button
+		{ attrs... }
+		type="button"
+		class={ ButtonClass }
+	>
+		{ content }
+	</button>
+}

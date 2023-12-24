@@ -1,0 +1,16 @@
+package views 
+
+import "github.com/dingyuchen/goose-split/views/layouts"
+import "github.com/dingyuchen/goose-split/views/components"
+
+templ Index () {
+	@layouts.Page("Goose Split") {
+		<section class="justify-center w-full" hx-boost="true">
+			<h1 class="text-xl text-center">Goose Split</h1>
+			<input type="text" id="input" class="w-full" placeholder="Enter party id"/>
+			@components.Button("Join", templ.Attributes{"id": "join"})
+			// <button href="/new" class={ components.ButtonClass }>Create New</button>
+			<a href="/new" class={ components.ButtonClass }>Create New</a>
+		</section>
+	}
+}
