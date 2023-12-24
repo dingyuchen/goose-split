@@ -16,6 +16,7 @@ func main() {
 		return nil
 	})
 
+	app.RootCmd.Execute()
 	if err := app.Start(); err != nil {
 		log.Fatal(err)
 	}
