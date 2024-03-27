@@ -1,56 +1,126 @@
 package main
 
 import (
+	"errors"
 	"log"
-	"os"
-	"strconv"
-	"strings"
+	"net/http"
+	"time"
 
-	"github.com/dingyuchen/goose-split/views"
-	"github.com/dingyuchen/goose-split/views/components"
-	"github.com/labstack/echo/v5"
-	"github.com/pocketbase/pocketbase"
-	"github.com/pocketbase/pocketbase/core"
-	"github.com/pocketbase/pocketbase/plugins/migratecmd"
+	g "github.com/maragudk/gomponents"
+	c "github.com/maragudk/gomponents/components"
+	. "github.com/maragudk/gomponents/html"
 )
 
 func main() {
-	app := pocketbase.New()
+	http.Handle("/", createHandler(indexPage()))
+	http.Handle("/contact", createHandler(contactPage()))
+	http.Handle("/about", createHandler(aboutPage()))
 
-	// loosely check if it was executed using "go run"
-	isGoRun := strings.HasPrefix(os.Args[0], os.TempDir())
-
-	migratecmd.MustRegister(app, app.RootCmd, migratecmd.Config{
-		// enable auto creation of migration files when making collection changes in the Admin UI
-		// (the isGoRun check is to enable it only during development)
-		Automigrate: isGoRun,
-	})
-
-	// serves static files from the provided public dir (if exists)
-	app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
-		e.Router.GET("/", func(c echo.Context) error {
-			index := views.Index()
-			c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextHTMLCharsetUTF8)
-			return index.Render(c.Request().Context(), c.Response())
-		})
-		e.Router.GET("/new", func(c echo.Context) error {
-			cmp := views.NewParty()
-			c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextHTMLCharsetUTF8)
-			return cmp.Render(c.Request().Context(), c.Response())
-		})
-		e.Router.GET("/new/:person", func(c echo.Context) error {
-			personCount, err := strconv.Atoi(c.PathParam("person"))
-			if err != nil {
-				c.NoContent(400)
-			}
-			cmp := components.NextPerson(personCount)
-			c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextHTMLCharsetUTF8)
-			return cmp.Render(c.Request().Context(), c.Response())
-		})
-		return nil
-	})
-
-	if err := app.Start(); err != nil {
-		log.Fatal(err)
+	if err := http.ListenAndServe("localhost:8081", nil); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		log.Println("Error:", err)
 	}
+}
+
+func createHandler(title string, body g.Node) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Rendering a Node is as simple as calling Render and passing an io.Writer
+		_ = Page(title, r.URL.Path, body).Render(w)
+	}
+}
+
+func indexPage() (string, g.Node) {
+	return "Welcome!", Div(
+		H1(g.Text("Welcome to this example page")),
+		P(g.Text("I hope it will make you happy. 😄 It's using TailwindCSS for styling.")),
+	)
+}
+
+func contactPage() (string, g.Node) {
+	return "Contact", Div(
+		H1(g.Text("Contact us")),
+		P(g.Text("Just do it.")),
+	)
+}
+
+func aboutPage() (string, g.Node) {
+	return "About", Div(
+		H1(g.Text("About this site")),
+		P(g.Text("This is a site showing off gomponents.")),
+	)
+}
+
+func Page(title, path string, body g.Node) g.Node {
+	// HTML5 boilerplate document
+	return c.HTML5(c.HTML5Props{
+		Title:    title,
+		Language: "en",
+		Head: []g.Node{
+			Script(Src("https://cdn.tailwindcss.com?plugins=typography")),
+		},
+		Body: []g.Node{
+			Navbar(path, []PageLink{
+				{Path: "/contact", Name: "Contact"},
+				{Path: "/about", Name: "About"},
+			}),
+			Container(
+				Prose(body),
+				PageFooter(),
+			),
+		},
+	})
+}
+
+type PageLink struct {
+	Path string
+	Name string
+}
+
+func Navbar(currentPath string, links []PageLink) g.Node {
+	return Nav(Class("bg-gray-700 mb-4"),
+		Container(
+			Div(Class("flex items-center space-x-4 h-16"),
+				NavbarLink("/", "Home", currentPath == "/"),
+
+				// We can Map custom slices to Nodes
+				g.Group(g.Map(links, func(l PageLink) g.Node {
+					return NavbarLink(l.Path, l.Name, currentPath == l.Path)
+				})),
+			),
+		),
+	)
+}
+
+// NavbarLink is a link in the Navbar.
+func NavbarLink(path, text string, active bool) g.Node {
+	return A(Href(path), g.Text(text),
+		// Apply CSS classes conditionally
+		c.Classes{
+			"px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:text-white focus:bg-gray-700": true,
+			"text-white bg-gray-900":                           active,
+			"text-gray-300 hover:text-white hover:bg-gray-700": !active,
+		},
+	)
+}
+
+func Container(children ...g.Node) g.Node {
+	return Div(Class("max-w-7xl mx-auto px-2 sm:px-6 lg:px-8"), g.Group(children))
+}
+
+func Prose(children ...g.Node) g.Node {
+	return Div(Class("prose"), g.Group(children))
+}
+
+func PageFooter() g.Node {
+	return Footer(Class("prose prose-sm prose-indigo"),
+		P(
+			// We can use string interpolation directly, like fmt.Sprintf.
+			g.Textf("Rendered %v. ", time.Now().Format(time.RFC3339)),
+
+			// Conditional inclusion
+			g.If(time.Now().Second()%2 == 0, g.Text("It's an even second.")),
+			g.If(time.Now().Second()%2 == 1, g.Text("It's an odd second.")),
+		),
+
+		P(A(Href("https://www.gomponents.com"), g.Text("gomponents"))),
+	)
 }
